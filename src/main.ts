@@ -1,8 +1,8 @@
 import {Plugin, TFile, Notice, Menu, TAbstractFile, TFolder} from 'obsidian';
-import {DEFAULT_SETTINGS, MyPluginSettings} from "./settings";
+import {DEFAULT_SETTINGS, CopyPluginSettings, CopySettingsTab, TEMPLATE_COMPONENT} from "./settings";
 
 export default class CopyFilesContent extends Plugin {
-	settings: MyPluginSettings;
+	settings: CopyPluginSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -28,15 +28,14 @@ export default class CopyFilesContent extends Plugin {
 			})
 		);
 
-		// TODO add a settings tab so the user can configure various aspects of the plugin
-		// this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new CopySettingsTab(this.app, this));
 	}
 
 	onunload() {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<MyPluginSettings>);
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<CopyPluginSettings>);
 	}
 
 	async saveSettings() {
@@ -44,28 +43,38 @@ export default class CopyFilesContent extends Plugin {
 	}
 
 	async copySelectedFiles(files: TAbstractFile[]): Promise<void> {
+		const ignored = this.settings.ignoredExtensions.split(',').map(e => e.trim().toLowerCase());
+
 		const visited: Set<string> = new Set
 		const cleanedSelectedFiles: TFile[] = []
 		// respect the order of selection
 		this.getFilesRecursive(files).forEach((file) => {
-			if (!visited.has(file.path)) {
+			if (!visited.has(file.path) && !ignored.includes(file.extension.toLowerCase())) {
 				visited.add(file.path)
 				cleanedSelectedFiles.push(file)
 			}
 		})
 
 		if (cleanedSelectedFiles.length === 0) {
-			new Notice("No .md files found.");
+			new Notice("No valid files found.");
 			return;
+		}
+		const template = this.settings.template;
+		if (!template.includes(TEMPLATE_COMPONENT.CONTENT)) {
+			new Notice(`Warning: Template is missing ${TEMPLATE_COMPONENT.CONTENT}. Output will be empty.`);
 		}
 
 		const readPromises = cleanedSelectedFiles.map(async (file) => {
 			try {
+				//Reads a plaintext file that is stored inside the vault,
 				const content = await this.app.vault.read(file);
-				//TODO custom header
-				const breadcrumb = file.path.replace(`.${file.extension}`, '');
-
-				return `# ${breadcrumb}\n\n${content}\n\n---\n\n`;
+				return template
+					.split(TEMPLATE_COMPONENT.PATH).join(file.path)
+					.split(TEMPLATE_COMPONENT.FOLDER).join(file.parent?.path || "")
+					.split(TEMPLATE_COMPONENT.FILENAME).join(file.basename)
+					.split(TEMPLATE_COMPONENT.EXTENSION).join(file.extension)
+					.split(TEMPLATE_COMPONENT.CONTENT).join(content)
+					.split('\\n').join('\n');
 			} catch (err) {
 				console.error(`Failed to read ${file.path}`, err);
 				return null;
@@ -91,10 +100,7 @@ export default class CopyFilesContent extends Plugin {
 
 		for (const file of files) {
 			if (file instanceof TFile) {
-				// TODO support other types
-				if (file.extension === 'md') {
-					result.push(file);
-				}
+				result.push(file);
 			} else if (file instanceof TFolder) {
 				result = result.concat(this.getFilesRecursive(file.children));
 			}
