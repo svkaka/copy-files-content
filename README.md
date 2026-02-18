@@ -18,3 +18,9 @@ Minimalist plugin that enables to **Copy contents of selected files into clipboa
 
 Search for "Copy Files Content" in the Obsidian Community Plugins tab or install manually by moving `main.js`,
 `manifest.json`, and `styles.css` to your `.obsidian/plugins/copy-files-content/` folder.
+
+
+## Screenshots
+![Selection](/screenshot/selection.png?raw=true "Optional Title")
+![Settings](/screenshot/settings.png?raw=true "Optional Title")
+![Clipboard content](/screenshot/export.png?raw=true "Optional Title")
