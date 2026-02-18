@@ -3,7 +3,7 @@
 	"name": "Copy Files Content",
 	"version": "1.0.1",
 	"minAppVersion": "0.15.0",
-	"description": "Copy contents of Selected Files/ Folders into your clipboard with customizable templates",
+	"description": "Copy contents of selected files or folders into your clipboard with customizable templates.",
 	"author": "svkaka",
 	"authorUrl": "https://github.com/svkaka",
 	"fundingUrl": "https://github.com/sponsors/svkaka",
