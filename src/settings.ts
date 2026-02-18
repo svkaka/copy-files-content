@@ -11,8 +11,9 @@ export enum TEMPLATE_COMPONENT {
 	PATH = "{{path}}",
 	FOLDER = "{{folder}}",
 	FILENAME = "{{fileName}}",
-	EXTENSION = "{{extension}}",
+	EXTENSION = "{{fileExt}}",
 }
+
 export const TEMPLATE_STANDARD = `**File:** ${TEMPLATE_COMPONENT.PATH}\\n\\n${TEMPLATE_COMPONENT.CONTENT}\\n\\n---\\n\\n`;
 export const TEMPLATE_RAW = `${TEMPLATE_COMPONENT.CONTENT}\\n\\n`;
 export const DEFAULT_IGNORED_EXT = 'txt, svg';
@@ -31,15 +32,34 @@ export class CopySettingsTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	templateToolbar(toolbar: HTMLDivElement): void {
-		toolbar.style.display = 'flex';
-		toolbar.style.flexWrap = 'wrap';
-		toolbar.style.gap = '10px';
-		toolbar.style.marginTop = '-10px';
-		toolbar.style.paddingBottom = '20px';
-		toolbar.style.backgroundColor = 'var(--background-secondary)'
-		//todo fix this looks shit - use styles
 
+	display(): void {
+		const {containerEl} = this;
+		containerEl.empty();
+
+		containerEl.createEl('h2', {text: 'Copy Content Settings'});
+
+		new Setting(containerEl)
+			.setName("Export template")
+			.setHeading()
+		new Setting(containerEl)
+			.setName('Output Template')
+			.setDesc('Define how files are formatted.')
+			.addText(text => {
+				text
+					.setPlaceholder('Enter your template...')
+					.setValue(this.plugin.settings.template)
+					.onChange(async (value) => {
+						this.plugin.settings.template = value;
+						await this.plugin.saveSettings();
+					});
+				text.inputEl.style.width = '100%';
+				text.inputEl.style.fontFamily = 'monospace';
+			});
+		//todo add extra button for validation
+
+
+		const toolbar = containerEl.createDiv({cls: 'copy-files-toolbar'});
 		Object.values(TEMPLATE_COMPONENT).forEach(token => {
 			new ButtonComponent(toolbar)
 				.setButtonText(token)
@@ -52,7 +72,7 @@ export class CopySettingsTab extends PluginSettingTab {
 		});
 
 		new ButtonComponent(toolbar)
-			.setButtonText('newline')
+			.setButtonText('\\n\\n')
 			.setTooltip('Insert New Line')
 			.onClick(async () => {
 				//todo cursor based
@@ -62,7 +82,7 @@ export class CopySettingsTab extends PluginSettingTab {
 			});
 		const spacer = toolbar.createDiv();
 		spacer.style.flexGrow = '1';
-		spacer.style.minWidth = '20px';
+		spacer.style.minWidth = '12px';
 
 		new ButtonComponent(toolbar)
 			.setButtonText('Standard')
@@ -81,31 +101,11 @@ export class CopySettingsTab extends PluginSettingTab {
 				await this.plugin.saveSettings();
 				this.display();
 			});
-	}
 
-	display(): void {
-		const {containerEl} = this;
-		containerEl.empty();
-
-		containerEl.createEl('h2', {text: 'Copy Content Settings'});
 
 		new Setting(containerEl)
-			.setName('Output Template')
-			.setDesc('Define how files are formatted.')
-			.addText(text => {
-				text
-					.setPlaceholder('Enter your template...')
-					.setValue(this.plugin.settings.template)
-					.onChange(async (value) => {
-						this.plugin.settings.template = value;
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.style.width = '100%';
-				text.inputEl.style.fontFamily = 'monospace';
-			});
-		//todo add extra button for validation
-
-		this.templateToolbar(containerEl.createDiv())
+			.setName("Ignored files")
+			.setHeading()
 
 		new Setting(containerEl)
 			.setName('Ignored Extensions')

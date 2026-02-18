@@ -6,3 +6,12 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+.copy-files-toolbar {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	width: 100%;
+	gap: 8px;
+	margin-top: 8px;
+	margin-bottom: 12px;
+}
