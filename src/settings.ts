@@ -68,8 +68,6 @@ export class CopySettingsTab extends PluginSettingTab {
 				text.inputEl.style.fontFamily = 'monospace';
 			});
 
-		//todo add extra button for validation
-
 		const insertAtCursor = async (token: string) => {
 			if (!textAreaEl) return;
 
@@ -119,7 +117,7 @@ export class CopySettingsTab extends PluginSettingTab {
 			.onClick(async () => {
 				this.plugin.settings.template = TEMPLATE_STANDARD;
 				await this.plugin.saveSettings();
-				this.display();
+				textAreaEl.value = TEMPLATE_STANDARD;
 			});
 
 		new ButtonComponent(toolbar)
@@ -128,7 +126,7 @@ export class CopySettingsTab extends PluginSettingTab {
 			.onClick(async () => {
 				this.plugin.settings.template = TEMPLATE_RAW;
 				await this.plugin.saveSettings();
-				this.display();
+				textAreaEl.value = TEMPLATE_RAW;
 			});
 
 
