@@ -15,7 +15,7 @@ export enum TEMPLATE_COMPONENT {
 }
 export const TEMPLATE_STANDARD = `**File:** ${TEMPLATE_COMPONENT.PATH}\\n\\n${TEMPLATE_COMPONENT.CONTENT}\\n\\n---\\n\\n`;
 export const TEMPLATE_RAW = `${TEMPLATE_COMPONENT.CONTENT}\\n\\n`;
-export const DEFAULT_IGNORED_EXT = 'png, jpg, jpeg, pdf, gif, bmp, svg, mp3, mp4, zip, exe';
+export const DEFAULT_IGNORED_EXT = 'txt, svg';
 
 
 export const DEFAULT_SETTINGS: CopyPluginSettings = {
