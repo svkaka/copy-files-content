@@ -109,8 +109,14 @@ export class CopySettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Ignored Extensions')
-			.setDesc('Comma-separated list of file types to skip.')
-
+			.setDesc(createFragment((frag) => {
+				frag.appendText('Comma-separated list of file types to skip.');
+				frag.createEl('br');
+				frag.createEl('small', {
+					text: 'Note: Binary files (images, PDFs) are automatically skipped.',
+					cls: 'text-muted'
+				});
+			}))
 			.addText(text => {
 				text
 					.setPlaceholder(DEFAULT_IGNORED_EXT)
