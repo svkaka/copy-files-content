@@ -16,7 +16,7 @@ export enum TEMPLATE_COMPONENT {
 
 export const TEMPLATE_STANDARD = `**File:** ${TEMPLATE_COMPONENT.PATH}\\n\\n${TEMPLATE_COMPONENT.CONTENT}\\n\\n---\\n\\n`;
 export const TEMPLATE_RAW = `${TEMPLATE_COMPONENT.CONTENT}\\n\\n`;
-export const DEFAULT_IGNORED_EXT = 'txt, svg';
+export const DEFAULT_IGNORED_EXT = 'svg';
 
 
 export const DEFAULT_SETTINGS: CopyPluginSettings = {
@@ -42,10 +42,20 @@ export class CopySettingsTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Export template")
 			.setHeading()
+		let textAreaEl: HTMLTextAreaElement;
+
 		new Setting(containerEl)
-			.setName('Output Template')
-			.setDesc('Define how files are formatted.')
-			.addText(text => {
+			.setName('Export Template')
+			.setDesc(createFragment((frag) => {
+				frag.appendText('Define how export is formatted');
+				frag.createEl('br');
+				frag.createEl('small', {
+					text: 'Note: Put enough \\n\\n so markdown formatting works',
+					cls: 'text-muted'
+				});
+			}))
+			.addTextArea(text => {
+				textAreaEl = text.inputEl;
 				text
 					.setPlaceholder('Enter your template...')
 					.setValue(this.plugin.settings.template)
@@ -54,9 +64,30 @@ export class CopySettingsTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					});
 				text.inputEl.style.width = '100%';
+				text.inputEl.style.height = '100px';
 				text.inputEl.style.fontFamily = 'monospace';
 			});
+
 		//todo add extra button for validation
+
+		const insertAtCursor = async (token: string) => {
+			if (!textAreaEl) return;
+
+			const start = textAreaEl.selectionStart;
+			const end = textAreaEl.selectionEnd;
+			const currentText = textAreaEl.value;
+
+			const newText = currentText.substring(0, start) + token + currentText.substring(end);
+
+			textAreaEl.value = newText;
+			this.plugin.settings.template = newText;
+
+			// Move cursor to just after the inserted token
+			textAreaEl.focus();
+			textAreaEl.setSelectionRange(start + token.length, start + token.length);
+
+			await this.plugin.saveSettings();
+		};
 
 
 		const toolbar = containerEl.createDiv({cls: 'copy-files-toolbar'});
@@ -64,22 +95,20 @@ export class CopySettingsTab extends PluginSettingTab {
 			new ButtonComponent(toolbar)
 				.setButtonText(token)
 				.setTooltip(`Insert ${token}`)
-				.onClick(async () => {
-					this.plugin.settings.template += token;
-					await this.plugin.saveSettings();
-					this.display();
-				});
+				.onClick(async () => insertAtCursor(token));
 		});
 
 		new ButtonComponent(toolbar)
 			.setButtonText('\\n\\n')
-			.setTooltip('Insert New Line')
-			.onClick(async () => {
-				//todo cursor based
-				this.plugin.settings.template += '\\n';
-				await this.plugin.saveSettings();
-				this.display();
-			});
+			.setTooltip('Insert New Lines')
+			.onClick(async () => insertAtCursor('\\n\\n'));
+
+		new ButtonComponent(toolbar)
+			.setButtonText('---')
+			.setTooltip('Insert separator')
+			.onClick(async () => insertAtCursor('\\n\\n---\\n\\n'));
+
+
 		const spacer = toolbar.createDiv();
 		spacer.style.flexGrow = '1';
 		spacer.style.minWidth = '12px';

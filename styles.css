@@ -9,7 +9,7 @@ If your plugin does not need CSS, delete this file.
 .copy-files-toolbar {
 	display: flex;
 	flex-direction: row;
-	flex-wrap: nowrap;
+	flex-wrap: wrap;
 	width: 100%;
 	gap: 8px;
 	margin-top: 8px;
