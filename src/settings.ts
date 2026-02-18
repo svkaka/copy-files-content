@@ -1,5 +1,5 @@
 import {App, PluginSettingTab, Setting} from "obsidian";
-import MyPlugin from "./main";
+import CopyFilesContent from "./main";
 
 export interface MyPluginSettings {
 	mySetting: string;
@@ -10,9 +10,9 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
 }
 
 export class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+	plugin: CopyFilesContent;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: CopyFilesContent) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

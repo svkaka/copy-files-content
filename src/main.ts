@@ -1,73 +1,37 @@
-import {App, Editor, MarkdownView, Modal, Notice, Plugin} from 'obsidian';
-import {DEFAULT_SETTINGS, MyPluginSettings, SampleSettingTab} from "./settings";
+import {Plugin, TFile, Notice, Menu, TAbstractFile} from 'obsidian';
+import {DEFAULT_SETTINGS, MyPluginSettings} from "./settings";
 
 // Remember to rename these classes and interfaces!
 
-export default class MyPlugin extends Plugin {
+export default class CopyFilesContent extends Plugin {
 	settings: MyPluginSettings;
 
 	async onload() {
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		this.addRibbonIcon('dice', 'Sample', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
+		this.registerEvent(
+			this.app.workspace.on("files-menu", (menu: Menu, files: TAbstractFile[]) => {
+				menu.addItem((item) => {
+					item
+						.setTitle("Copy contents")
+						.setIcon("clipboard-copy")
+						.onClick(async () => this.copySelectedFiles(files));
+				});
+			})
+		);
+		this.registerEvent(
+			this.app.workspace.on("file-menu", (menu: Menu, file: TAbstractFile) => {
+				menu.addItem((item) => {
+					item
+						.setTitle("Copy content")
+						.setIcon("clipboard-copy")
+						.onClick(async () => this.copySelectedFiles([file]));
+				});
+			})
+		);
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status bar text');
-
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-modal-simple',
-			name: 'Open modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'replace-selected',
-			name: 'Replace selected content',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				editor.replaceSelection('Sample editor command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-modal-complex',
-			name: 'Open modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-				return false;
-			}
-		});
-
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			new Notice("Click");
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
-
+		// TODO add a settings tab so the user can configure various aspects of the plugin
+		// this.addSettingTab(new SampleSettingTab(this.app, this));
 	}
 
 	onunload() {
@@ -80,20 +44,35 @@ export default class MyPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
-}
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+	async copySelectedFiles(files: TAbstractFile[]): Promise<void> {
+		// TODO Support folders
+		const validFiles = files.filter((f): f is TFile => f instanceof TFile);
 
-	onOpen() {
-		let {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
+		if (validFiles.length === 0) {
+			new Notice("No files selected.");
+			return;
+		}
 
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
+		const readPromises = validFiles.map(async (file) => {
+			try {
+				const content = await this.app.vault.read(file);
+				//  TODO support Formatting
+				return `# ${file.basename}\n\n${content}\n\n---\n\n`;
+			} catch (err) {
+				console.error(`Failed to read ${file.path}`, err);
+				return null;
+			}
+		});
+
+		const results = await Promise.all(readPromises);
+		const finalContent = results.filter((c): c is string => c !== null).join('');
+
+		if (finalContent) {
+			await navigator.clipboard.writeText(finalContent);
+			new Notice(`Copied ${validFiles.length} files to clipboard!`);
+		} else {
+			new Notice("Failed to copy content.");
+		}
 	}
 }
