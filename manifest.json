@@ -1,7 +1,7 @@
 {
 	"id": "copy-files-content",
 	"name": "Copy Files Content",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "0.15.0",
 	"description": "Copy contents of Selected Files/ Folders into your clipboard with customizable templates",
 	"author": "svkaka",
