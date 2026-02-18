@@ -37,35 +37,21 @@ export class CopySettingsTab extends PluginSettingTab {
 		const {containerEl} = this;
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Copy Content Settings'});
-
-		new Setting(containerEl)
-			.setName("Export template")
-			.setHeading()
 		let textAreaEl: HTMLTextAreaElement;
 
 		new Setting(containerEl)
-			.setName('Export Template')
-			.setDesc(createFragment((frag) => {
-				frag.appendText('Define how export is formatted');
-				frag.createEl('br');
-				frag.createEl('small', {
-					text: 'Note: Put enough \\n\\n so markdown formatting works',
-					cls: 'text-muted'
-				});
-			}))
+			.setName('Export template')
+			.setDesc("Configure the layout of exported content.")
 			.addTextArea(text => {
 				textAreaEl = text.inputEl;
 				text
-					.setPlaceholder('Enter your template...')
+					.setPlaceholder('e.g. **File:** {{path}}\n\n{{content}}')
 					.setValue(this.plugin.settings.template)
 					.onChange(async (value) => {
 						this.plugin.settings.template = value;
 						await this.plugin.saveSettings();
 					});
-				text.inputEl.style.width = '100%';
-				text.inputEl.style.height = '100px';
-				text.inputEl.style.fontFamily = 'monospace';
+				text.inputEl.addClass('copy-files-textarea');
 			});
 
 		const insertAtCursor = async (token: string) => {
@@ -98,7 +84,7 @@ export class CopySettingsTab extends PluginSettingTab {
 
 		new ButtonComponent(toolbar)
 			.setButtonText('\\n\\n')
-			.setTooltip('Insert New Lines')
+			.setTooltip('Insert new lines')
 			.onClick(async () => insertAtCursor('\\n\\n'));
 
 		new ButtonComponent(toolbar)
@@ -107,13 +93,11 @@ export class CopySettingsTab extends PluginSettingTab {
 			.onClick(async () => insertAtCursor('\\n\\n---\\n\\n'));
 
 
-		const spacer = toolbar.createDiv();
-		spacer.style.flexGrow = '1';
-		spacer.style.minWidth = '12px';
+		toolbar.createDiv({cls: 'copy-files-spacer'});
 
 		new ButtonComponent(toolbar)
 			.setButtonText('Standard')
-			.setTooltip('Reset to Header + Content')
+			.setTooltip('Reset to header + content')
 			.onClick(async () => {
 				this.plugin.settings.template = TEMPLATE_STANDARD;
 				await this.plugin.saveSettings();
@@ -122,7 +106,7 @@ export class CopySettingsTab extends PluginSettingTab {
 
 		new ButtonComponent(toolbar)
 			.setButtonText('Raw')
-			.setTooltip('Reset to Content Only')
+			.setTooltip('Reset to content only')
 			.onClick(async () => {
 				this.plugin.settings.template = TEMPLATE_RAW;
 				await this.plugin.saveSettings();
@@ -131,19 +115,12 @@ export class CopySettingsTab extends PluginSettingTab {
 
 
 		new Setting(containerEl)
-			.setName("Ignored files")
-			.setHeading()
+			.setName('Ignored extensions')
+			.setHeading();
 
 		new Setting(containerEl)
-			.setName('Ignored Extensions')
-			.setDesc(createFragment((frag) => {
-				frag.appendText('Comma-separated list of file types to skip.');
-				frag.createEl('br');
-				frag.createEl('small', {
-					text: 'Note: Binary files (images, PDFs) are automatically skipped.',
-					cls: 'text-muted'
-				});
-			}))
+			.setName('Ignored extensions')
+			.setDesc('Comma-separated list of file types to skip.')
 			.addText(text => {
 				text
 					.setPlaceholder(DEFAULT_IGNORED_EXT)
@@ -152,8 +129,7 @@ export class CopySettingsTab extends PluginSettingTab {
 						this.plugin.settings.ignoredExtensions = value;
 						await this.plugin.saveSettings();
 					});
-				text.inputEl.style.width = '100%';
-				text.inputEl.style.fontFamily = 'monospace';
-			})
+				text.inputEl.addClass('copy-files-input');
+			});
 	}
 }

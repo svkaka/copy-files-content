@@ -8,3 +8,17 @@
 	margin-top: 8px;
 	margin-bottom: 12px;
 }
+
+.copy-files-textarea {
+	width: 100%;
+	height: 120px;
+}
+
+.copy-files-input {
+	width: 100%;
+}
+
+.copy-files-spacer {
+	flex-grow: 1;
+	min-width: 12px;
+}
